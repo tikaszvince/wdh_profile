@@ -17,6 +17,7 @@ function wdh_profile_install() {
   $default_theme = 'wdh_theme';
 
   theme_enable(array('seven', $default_theme));
+  variable_set('site_name', 'Webdev Hub');
   variable_set('admin_theme', 'seven');
   variable_set('node_admin_theme', '0');
   variable_set('theme_default', $default_theme);
