@@ -17,11 +17,25 @@ dependencies[] = path
 dependencies[] = dblog
 dependencies[] = file
 dependencies[] = rdf
+dependencies[] = block
+dependencies[] = field_ui
+dependencies[] = locale
+dependencies[] = locale
 
 ; Contrib
 dependencies[] = admin_menu
+dependencies[] = admin_menu_toolbar
 dependnecies[] = views_content
 dependencies[] = jquery_update
+dependencies[] = feeds
+dependencies[] = feeds_ui
+dependencies[] = pathauto
+dependencies[] = token
+dependencies[] = transliteration
+dependencies[] = googleanalytics
+dependencies[] = ckeditor
+dependencies[] = views
+dependencies[] = views_ui
 
 ; Custom
 dependencies[] = twitter_importer
