@@ -12,6 +12,7 @@ function wdh_profile_install_tasks($install_state) {
     'wdh_profile_create_user_permissions' => array(),
     'wdh_profile_create_texteditor_role' => array(),
     'wdh_profile_create_administrator_role' => array(),
+    'wdh_profile_update_settings' => array(),
   );
   return $tasks;
 }
@@ -50,9 +51,6 @@ function wdh_profile_create_user_permissions() {
  * Implements hook_form_FORM_ID_alter().
  */
 function wdh_profile_form_install_configure_form_alter(&$form, $form_state) {
-  // Pre-populate the site name with the server name.
-  $form['site_information']['site_name']['#default_value'] = 'WebDevHub';
-
   // Set default site email.
   $form['site_information']['site_mail']['#default_value'] = 'info@wdh.hu';
 
@@ -62,6 +60,15 @@ function wdh_profile_form_install_configure_form_alter(&$form, $form_state) {
 
   // Set default location.
   $form['server_settings']['site_default_country']['#default_value'] = 'HU';
+  $form['server_settings']['date_first_day']['#default_value'] = '1';
   $form['server_settings']['date_default_timezone']['#default_value'] = 'Europe/Budapest';
   $form['update_notifications']['update_status_module'][2]['#default_value'] = 0;
+}
+
+/**
+ * Update site settings.
+ */
+function wdh_profile_update_settings() {
+  variable_set('site_name', 'Webdev Hub');
+  // variable_set('site_mail', 'info@wdh.hu');
 }
