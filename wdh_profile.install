@@ -1,0 +1,33 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the minimal install profile.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Performs actions to set up the site for this profile.
+ *
+ * @see system_install()
+ */
+function drupalaton_profile_install() {
+  variable_set('date_default_timezone', 'Europe/Budapest');
+
+  $default_theme = 'wdh_theme';
+
+  theme_enable(array('seven', $default_theme));
+  variable_set('admin_theme', 'seven');
+  variable_set('node_admin_theme', '0');
+  variable_set('theme_default', $default_theme);
+
+  // jQuery update.
+  variable_set('jquery_update_jquery_version', '1.8');
+
+  // Turn off the registration.
+  variable_set('user_register', FALSE);
+
+  // Enable default permissions for system roles.
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('access content'));
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access content'));
+}

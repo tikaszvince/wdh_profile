@@ -1,0 +1,27 @@
+name = WebDevHub profile
+description = Drupal profile for WebDevHub website
+version = VERSION
+
+api = 2
+core = 7.x
+
+; Core
+dependencies[] = contextual
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = dblog
+dependencies[] = file
+dependencies[] = rdf
+
+; Contrib
+dependencies[] = admin_menu
+dependnecies[] = views_content
+dependencies[] = jquery_update
+
+; Custom
+dependencies[] = twitter_importer
