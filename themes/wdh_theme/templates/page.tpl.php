@@ -7,7 +7,7 @@
 <header role="banner" class="header page-header container">
   <h1>
     <a class="h1" href="<?php print url('<front>'); ?>" rel="nofollow">
-      <?php print $logo; ?>
+      <?php print $site_name; ?>
     </a>
   </h1>
   <?php if ($main_menu): ?>
