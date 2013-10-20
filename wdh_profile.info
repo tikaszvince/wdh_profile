@@ -39,5 +39,6 @@ dependencies[] = views_ui
 dependencies[] = twitter
 
 ; Custom
+dependencies[] = wdh
 dependencies[] = wdh_dev
 dependencies[] = wdh_twitter

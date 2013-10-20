@@ -1,0 +1,29 @@
+<?php
+/**
+ * @file
+ * WDH Twitter importen
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function wdh_menu() {
+  $items['admin/config/services/wdh'] = array(
+    'title' => 'WDH',
+    'description' => 'WDH settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('wdh_form'),
+    'access arguments' => array('administer twitter accounts'),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form().
+ */
+function wdh_form($form, &$form_state) {
+  $form = array();
+
+
+  return $form;
+}
