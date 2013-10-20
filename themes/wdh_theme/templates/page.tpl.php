@@ -46,7 +46,7 @@
       <img alt="Creative Commons Licenc" src="http://i.creativecommons.org/l/by-sa/3.0/80x15.png" />
     </a><br />
     <a xmlns:cc="http://creativecommons.org/ns#" href="<?php print url('<front>') ?>" property="cc:attributionName" rel="cc:attributionURL">
-      <?php print url('<front>') ?></a>
+      <?php print $site_name ?></a>
     <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">WebDevHub</span> című műve
     <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.hu">Creative Commons Nevezd meg! - Így add tovább! 3.0 Unported Licenc</a>
     alatt van.
