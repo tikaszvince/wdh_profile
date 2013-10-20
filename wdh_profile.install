@@ -22,7 +22,7 @@ function wdh_profile_install() {
   variable_set('theme_default', $default_theme);
 
   // jQuery update.
-  variable_set('jquery_update_jquery_version', '1.8');
+  variable_set('jquery_update_jquery_version', '1.7');
 
   // Turn off the registration.
   variable_set('user_register', FALSE);
