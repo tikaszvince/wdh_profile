@@ -1,0 +1,7 @@
+name = Import WDH from Twitter
+core = 7.x
+package = WDH Features
+version = 7.x-0.1
+project = wdh_twitter
+dependencies[] = twitter
+project path = profiles/wdh_profile/modules/wdh

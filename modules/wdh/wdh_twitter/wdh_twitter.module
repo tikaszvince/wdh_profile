@@ -1,0 +1,249 @@
+<?php
+/**
+ * @file
+ * WDH Twitter importen
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function wdh_twitter_menu() {
+  $items['admin/config/services/wdh/twitter'] = array(
+    'title' => 'WDH Twitter',
+    'description' => 'WDH Twitter accounts and settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('wdh_twitter_import_account_form'),
+    'access arguments' => array('administer twitter accounts'),
+  );
+
+  return $items;
+}
+
+/**
+ * Formats each Twitter account as a row within a form.
+ */
+function wdh_twitter_import_account_form($form, $form_state) {
+  $form = array();
+
+  // Verify OAuth keys.
+  if (!twitter_api_keys()) {
+    $variables = array('@twitter-settings' => url('admin/config/services/twitter/settings'));
+    return '<p>' . t('You need to authenticate at least one Twitter account in order to use the Twitter API. Please fill out the OAuth fields at <a href="@twitter-settings">Twitter Settings</a> and then return here.', $variables) . '</p>';
+  }
+
+  $accounts = wdh_twitter_get_username_list();
+  if (!empty($accounts)) {
+    $form['accounts'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('List of Twitter usernames to import'),
+      '#description' => t('List of Twitter usernames to import'),
+      '#options' => $accounts,
+    );
+    $form['btn_delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected usernames'),
+    );
+  }
+  $form['new_account'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add new username'),
+  );
+  $form['btn_add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add username to list'),
+  );
+
+  $hashtags = wdh_twitter_get_hashtag_list();
+  if (!empty($hashtags)) {
+    $form['hashtags'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('List of Twitter hashtags to import'),
+      '#description' => t('List of Twitter hashtags to import'),
+      '#options' => $hashtags,
+    );
+    $form['btn_delete_hashtag'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected hashtags'),
+    );
+  }
+  $form['new_hashtag'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add new hashtags'),
+  );
+  $form['btn_add_hashtag'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add hashtag to list'),
+  );
+
+  return $form;
+}
+
+/**
+ * Form submit handler for altering the list of Twitter accounts.
+ */
+function wdh_twitter_import_account_form_submit($form, &$form_state) {
+
+  if ($form_state['values']['btn_add'] && !empty($form_state['values']['new_account'])) {
+    _wdh_twitter_add_username(check_plain(preg_replace('/\s.*$/', '', $form_state['values']['new_account'])));
+  }
+  elseif ($form_state['values']['btn_add_hashtag'] && !empty($form_state['values']['new_hashtag'])) {
+    _wdh_twitter_add_hashtag(check_plain(preg_replace('/\s.*$/', '', $form_state['values']['new_hashtag'])));
+  }
+  elseif (
+    $form_state['values']['btn_delete']
+    && ($remove_list = array_filter($form_state['values']['accounts']))
+    && !empty($remove_list)
+  ) {
+    _wdh_twitter_remove_usernames($remove_list);
+  }
+  elseif (
+    $form_state['values']['btn_delete_hashtag']
+    && ($remove_list = array_filter($form_state['values']['hashtags']))
+    && !empty($remove_list)
+  ) {
+    _wdh_twitter_remove_hashtags($remove_list);
+  }
+}
+
+/**
+ * Get list of twiter usernames to import.
+ */
+function wdh_twitter_get_username_list() {
+  return (array) variable_get('wdh_services_twitter_username');
+}
+
+/**
+ * Get list of twiter usernames to import.
+ */
+function wdh_twitter_set_username_list(array $accounts) {
+  variable_set('wdh_services_twitter_username', $accounts);
+}
+
+/**
+ * Get list of twiter hashtags to filter.
+ */
+function wdh_twitter_get_hashtag_list() {
+  return (array) variable_get('wdh_services_twitter_hashtags');
+}
+
+/**
+ * Get list of twiter usernames to import.
+ */
+function wdh_twitter_set_hashtag_list(array $hashtags) {
+  variable_set('wdh_services_twitter_hashtags', $hashtags);
+}
+
+/**
+ * Add new username to twitter username list.
+ */
+function _wdh_twitter_add_username($new_account) {
+  global $user;
+  $accounts = wdh_twitter_get_username_list();
+  $accounts[$new_account] = $new_account;
+  wdh_twitter_set_username_list($accounts);
+  drupal_set_message(t('The Twitter account list were updated.'));
+  watchdog(
+    WATCHDOG_INFO,
+    'Account <em>@account</em> was added to WDH account list by !user',
+    array(
+      '@account' => '@' . $new_account,
+      '!user' => l($user->name, 'user/' . $user->uid),
+    )
+  );
+}
+
+/**
+ * Add new hashtag to list.
+ */
+function _wdh_twitter_add_hashtag($new_hashtag) {
+  global $user;
+  $hashtags = wdh_twitter_get_hashtag_list();
+  $hashtags[$new_hashtag] = $new_hashtag;
+  wdh_twitter_set_hashtag_list($hashtags);
+  drupal_set_message(t('The Twitter hashtag list were updated.'));
+  watchdog(
+    WATCHDOG_INFO,
+    'Hashtag <em>@hashtag</em> was added to WDH hashtag list by !user',
+    array(
+      '@hashtag' => '#' . $new_hashtag,
+      '!user' => l($user->name, 'user/' . $user->uid),
+    )
+  );
+}
+
+/**
+ * ADd new username to twitter username list.
+ */
+function _wdh_twitter_remove_usernames(array $remove_list) {
+  global $user;
+  $accounts = wdh_twitter_get_username_list();
+
+  $removed = array();
+  foreach ($remove_list as $remove) {
+    unset($accounts[$remove]);
+    $removed[] = '@' . $remove;
+  }
+
+  wdh_twitter_set_username_list($accounts);
+  drupal_set_message(t('The Twitter account list were updated.'));
+  watchdog(
+    WATCHDOG_INFO,
+    'Accounts <em>@accounts</em> were removed from WDH account list by !user',
+    array(
+      '@accounts' => implode(', ', $removed),
+      '!user' => l($user->name, 'user/' . $user->uid),
+    )
+  );
+}
+
+/**
+ * ADd new username to twitter username list.
+ */
+function _wdh_twitter_remove_hashtags(array $remove_list) {
+  global $user;
+  $hashtags = wdh_twitter_get_hashtag_list();
+
+  $removed = array();
+  foreach ($remove_list as $remove) {
+    unset($hashtags[$remove]);
+    $removed[] = '#' . $remove;
+  }
+
+  wdh_twitter_set_hashtag_list($hashtags);
+  drupal_set_message(t('The Twitter hashtag list were updated.'));
+  watchdog(
+    WATCHDOG_INFO,
+    'Hashtags <em>@hashtags</em> were removed from WDH hashtag list by !user',
+    array(
+      '@hashtags' => implode(', ', $removed),
+      '!user' => l($user->name, 'user/' . $user->uid),
+    )
+  );
+}
+
+/**
+ * Get search params.
+ */
+function wdh_twitter_get_search_params() {
+  $q = array();
+
+  $hashtags = array();
+  foreach (wdh_twitter_get_hashtag_list() as $hashtag) {
+    $hashtags[] = '#' . $hashtag;
+  }
+  if (!empty($hashtags)) {
+    $q[] = '(' . implode(' OR ', $hashtag) . ')';
+  }
+
+  $accounts = array();
+  foreach (wdh_twitter_get_username_list() as $user) {
+    $accounts[] = '@' . $user;
+  }
+  if (!empty($accounts)) {
+    $q[] = '(' . implode(' OR ', $accounts) . ')';
+  }
+
+  return array(
+    'q' => implode(' AND ', $q),
+  );
+}

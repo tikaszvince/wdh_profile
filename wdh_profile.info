@@ -40,3 +40,4 @@ dependencies[] = twitter
 
 ; Custom
 dependencies[] = wdh_dev
+dependencies[] = wdh_twitter
