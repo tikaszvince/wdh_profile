@@ -4,4 +4,5 @@ package = WDH Features
 version = 7.x-0.1
 project = wdh_twitter
 dependencies[] = twitter
+dependencies[] = wdh
 project path = profiles/wdh_profile/modules/wdh

@@ -79,6 +79,17 @@ function wdh_twitter_import_account_form($form, $form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function wdh_twitter_form_wdh_form_alter(&$form, &$form_state) {
+  $form['fetch_twitter'] = array(
+    '#type' => 'submit',
+    '#value' => t('Fetch new twitter statuses'),
+    '#submit' => array('wdh_twitter_fetch_tweets'),
+  );
+}
+
+/**
  * Form submit handler for altering the list of Twitter accounts.
  */
 function wdh_twitter_import_account_form_submit($form, &$form_state) {
@@ -226,24 +237,108 @@ function _wdh_twitter_remove_hashtags(array $remove_list) {
  */
 function wdh_twitter_get_search_params() {
   $q = array();
-
-  $hashtags = array();
-  foreach (wdh_twitter_get_hashtag_list() as $hashtag) {
-    $hashtags[] = '#' . $hashtag;
-  }
-  if (!empty($hashtags)) {
-    $q[] = '(' . implode(' OR ', $hashtag) . ')';
-  }
-
-  $accounts = array();
-  foreach (wdh_twitter_get_username_list() as $user) {
-    $accounts[] = '@' . $user;
-  }
-  if (!empty($accounts)) {
-    $q[] = '(' . implode(' OR ', $accounts) . ')';
-  }
-
-  return array(
-    'q' => implode(' AND ', $q),
+  $return = array(
+    'hashtags' => array(),
+    'users' => array(),
   );
+
+  foreach (wdh_twitter_get_hashtag_list() as $hashtag) {
+    $return['hashtags'][] = '#' . $hashtag;
+  }
+  if (!empty($return['hashtags'])) {
+    $q[] = '(' . implode(' OR ', $return['hashtags']) . ')';
+  }
+
+  foreach (wdh_twitter_get_username_list() as $user) {
+    $return['users'][] = '@' . $user;
+  }
+  if (!empty($return['users'])) {
+    $q[] = '(' . implode(' OR ', $return['users']) . ')';
+  }
+
+  $return['q'] = implode(' AND ', $q);
+  return $return;
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Imports new Twitter statuses for site users, and deletes expired tweets.
+ */
+function wdh_twitter_cron() {
+  wdh_twitter_fetch_tweets();
+}
+
+/**
+ * Fetch tweets.
+ */
+function wdh_twitter_fetch_tweets() {
+  $query = wdh_twitter_get_search_params();
+  if (!$query['q']) {
+    return;
+  }
+
+  // Check if we can connect to Twitter before proceeding.
+  module_load_include('inc', 'twitter');
+  $twitter = twitter_connect();
+  if (!$twitter) {
+    return;
+  }
+
+  $param['result_type'] = 'mixed';
+
+  try {
+    // TODO find a better way to fetch tweets to import.
+    foreach ($query['users'] as $user) {
+      $last_tweet = _wdh_twitter_get_account_last_tweet($user);
+      $params = $param;
+      if ($last_tweet) {
+        $params['since_id'] = $last_tweet['twitter_id'];
+      }
+
+      if ($values = $twitter->call('statuses/user_timeline', $params, 'GET')) {
+        foreach ($values as $status) {
+          if (!_wdh_twitter_check_status_hashtag($status, $query['hashtags'])) {
+            continue;
+          }
+          twitter_status_save(new TwitterStatus($status));
+        }
+      }
+    }
+  }
+  catch (TwitterException $e) {
+    // The exception has already been logged so we do not need to do anything
+    // here apart from catching it.
+  }
+  drupal_set_message(t('Twitter statuses fetched.'));
+}
+
+/**
+ * Get last fetched status id by username.
+ */
+function _wdh_twitter_get_account_last_tweet($screen_name) {
+  return db_select('twitter', 't')
+    ->orderBy('t.created_time', 'DESC')
+    ->fields('t')
+    ->condition('t.screen_name', $screen_name)
+    ->execute()
+    ->fetchAssoc();
+}
+
+/**
+ * Check status has hashtag.
+ */
+function _wdh_twitter_check_status_hashtag($status, array $hashtags) {
+  if (empty($hashtags)) {
+    return TRUE;
+  }
+  if (empty($status['entities']) || empty($status['entities']['hashtags'])) {
+    return FALSE;
+  }
+  foreach ($status['entities']['hashtags'] as $hashtag) {
+    if (in_array('#' . $hashtag['text'], $hashtags)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
