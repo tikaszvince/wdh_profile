@@ -40,6 +40,10 @@ projects[feeds_jsonpath_parser][subdir] = contrib
 projects[feeds_jsonpath_parser][version] = 1.0-beta2
 projects[link][subdir] = contrib
 projects[link][version] = 1.1
+projects[oauth][subdir] = contrib
+projects[oauth][version] = 3.1
+projects[twitter][subdir] = contrib
+projects[twitter][version] = 5.8
 
 ; User interface
 projects[ckeditor][type] = "module"

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the WDH@dev feature.
+ */
+
+include_once 'wdh_dev.features.inc';

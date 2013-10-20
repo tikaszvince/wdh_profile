@@ -36,6 +36,7 @@ dependencies[] = googleanalytics
 dependencies[] = ckeditor
 dependencies[] = views
 dependencies[] = views_ui
+dependencies[] = twitter
 
 ; Custom
-dependencies[] = twitter_importer
+dependencies[] = wdh_dev
